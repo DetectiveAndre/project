@@ -36,7 +36,7 @@ class Player(pygame.sprite.Sprite):
         self.dy = 0
         self.old_sprite = OldSprite(self.rect)
 
-    def move(self, key_down):
+    def move(self):
         if self.moves_right and self.rect.x + self.dx + self.player_width < constants.WIDTH:
             self.rect.x += self.dx
             self.moves_right = self.moves = True
