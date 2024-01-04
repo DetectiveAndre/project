@@ -37,11 +37,11 @@ class Player(pygame.sprite.Sprite):
         self.old_sprite = OldSprite(self.rect)
 
     def move(self, key_down):
-        if key_down[config.key_right] and self.rect.x + self.dx + self.player_width < constants.WIDTH:
+        if self.moves_right and self.rect.x + self.dx + self.player_width < constants.WIDTH:
             self.rect.x += self.dx
             self.moves_right = self.moves = True
             self.moves_left = False
-        elif key_down[config.key_left] and self.rect.x - self.dx > 0:
+        elif self.moves_left and self.rect.x - self.dx > 0:
             self.rect.x += -self.dx
             self.moves_left = self.moves = True
             self.moves_right = False
@@ -49,6 +49,16 @@ class Player(pygame.sprite.Sprite):
     def update(self):
         self.old_sprite.rect = self.rect.copy()
         self.rect.y = self.rect.y + (self.dy / constants.FPS)
+        if pygame.sprite.spritecollideany(self, tile_group) and pygame.sprite.spritecollideany(self, tile_group):
+            if self.moves:
+                if self.moves_right:
+                        self.rect.x -= 10
+                if self.moves_left:
+                        self.rect.x += 10
+            if self.falls:
+                self.rect.y -= 10
+            else:
+                self.rect.y += 10
         if pygame.sprite.spritecollideany(self, tile_group) and not pygame.sprite.spritecollideany(self.old_sprite,
                                                                                                    tile_group):
             self.dy = 0
@@ -60,25 +70,28 @@ class Player(pygame.sprite.Sprite):
                 self.rect.y = collide_sprite.rect.y + collide_sprite.rect.height
                 self.jumps = False
         else:
-            self.rect = self.old_sprite.rect
+            self.rect = self.old_sprite.rect.copy()
         if self.moves:
             if self.moves_right:
                 self.rect.x += self.dx
             if self.moves_left:
                 self.rect.x -= self.dx
-        if bool(pygame.sprite.spritecollideany(self, tile_group)) and not bool(
-                pygame.sprite.spritecollideany(self.old_sprite,
-                                               tile_group)):
+        if pygame.sprite.spritecollideany(self, tile_group) and not pygame.sprite.spritecollideany(self.old_sprite,
+                                                                                                   tile_group):
             collide_sprite = pygame.sprite.spritecollide(self, tile_group, 0)[0]
             self.moves = False
             if self.moves_right:
                 self.rect.x = collide_sprite.rect.x - self.rect.width
                 self.moves_right = False
+                while pygame.sprite.spritecollideany(self, tile_group):
+                    self.rect.x -= 1
             if self.moves_left:
                 self.rect.x = collide_sprite.rect.x + collide_sprite.rect.width
+                while pygame.sprite.spritecollideany(self, tile_group):
+                    self.rect.x += 1
                 self.moves_left = False
         else:
-            self.rect = self.old_sprite.rect
+            self.rect = self.old_sprite.rect.copy()
         if (
                 not pygame.sprite.spritecollideany(self,
                                                    tile_group)) and self.rect.y + self.player_height < constants.HEIGHT:
@@ -166,9 +179,9 @@ def main():
                 running = False
             if event.type == pygame.KEYDOWN:
                 if event.key == config.key_right:
-                    key_down[config.key_right] = True
+                    player.moves_right = True
                 if event.key == config.key_left:
-                    key_down[config.key_left] = True
+                    player.moves_left = True
                 if event.key == config.key_up:
                     key_down[config.key_up] = True
             if event.type == pygame.KEYUP:
