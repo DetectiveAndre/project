@@ -49,16 +49,6 @@ class Player(pygame.sprite.Sprite):
     def update(self):
         self.old_sprite.rect = self.rect.copy()
         self.rect.y = self.rect.y + (self.dy / constants.FPS)
-        if pygame.sprite.spritecollideany(self, tile_group) and pygame.sprite.spritecollideany(self, tile_group):
-            if self.moves:
-                if self.moves_right:
-                        self.rect.x -= 10
-                if self.moves_left:
-                        self.rect.x += 10
-            if self.falls:
-                self.rect.y -= 10
-            else:
-                self.rect.y += 10
         if pygame.sprite.spritecollideany(self, tile_group) and not pygame.sprite.spritecollideany(self.old_sprite,
                                                                                                    tile_group):
             self.dy = 0
