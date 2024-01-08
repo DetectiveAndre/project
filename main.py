@@ -23,7 +23,7 @@ class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__(all_sprites, player_group)
         self.jump_height = -250
-        self.image = load_image('circle.png')
+        self.image = load_image('player.png')
         self.player_width = self.image.get_rect().width
         self.player_height = self.image.get_rect().height
         self.rect = self.image.get_rect()
@@ -54,11 +54,18 @@ class Player(pygame.sprite.Sprite):
             self.dy = 0
             collide_sprite = pygame.sprite.spritecollide(self, tile_group, 0)[0]
             if self.falls:
-                self.rect.y = collide_sprite.rect.y - self.rect.height
+                self.rect.y = collide_sprite.rect.y - self.rect.height - 1
                 self.falls = False
             if self.jumps:
-                self.rect.y = collide_sprite.rect.y + collide_sprite.rect.height
+                self.rect.y = collide_sprite.rect.y + collide_sprite.rect.height + 1
                 self.jumps = False
+        if pygame.sprite.spritecollideany(self, tile_group) and pygame.sprite.spritecollideany(self.old_sprite,
+                                                                                               tile_group):
+            collide_sprite = pygame.sprite.spritecollideany(self, tile_group)
+            if collide_sprite.rect.y < self.rect.y:
+                self.rect.y += 10
+            if collide_sprite.rect.y > self.rect.y:
+                self.rect.y -= 10
         else:
             self.rect = self.old_sprite.rect.copy()
         if self.moves:
@@ -80,6 +87,12 @@ class Player(pygame.sprite.Sprite):
                 while pygame.sprite.spritecollideany(self, tile_group):
                     self.rect.x += 1
                 self.moves_left = False
+        if pygame.sprite.spritecollideany(self, tile_group) and pygame.sprite.spritecollideany(self.old_sprite,
+                                                                                               tile_group):
+            if self.moves_right:
+                self.rect.x -= 10
+            if self.moves_left:
+                self.rect.x += 10
         else:
             self.rect = self.old_sprite.rect.copy()
         if (
@@ -142,6 +155,7 @@ def load_image(name, colorkey=None):
 
 
 grass_image = load_image('grass.png')
+player = Player()
 
 
 def load_level(filename):
@@ -154,13 +168,15 @@ def load_level(filename):
             for j in range(len(level_information[i])):
                 if level_information[i][j] == constants.GRASS_SYMBOL:
                     Tile('grass', j * constants.SPRITE_WIDTH, i * constants.SPRITE_HEIGHT)
+                if level_information[i][j] == constants.PLAYER_SYMBOL:
+                    player.rect.x = j * constants.SPRITE_WIDTH
+                    player.rect.y = i * constants.SPRITE_HEIGHT
 
 
 def main():
     pygame.init()
     running = True
     pygame.display.set_caption('Платформер')
-    player = Player()
     key_down = {config.key_left: False, config.key_right: False, config.key_up: False}
     load_level('level_1.txt')
     while running:
@@ -181,7 +197,7 @@ def main():
                 if event.key == config.key_left:
                     player.moves_left = False
         if any(key_down.items()):
-            player.move(key_down)
+            player.move()
             if key_down[config.key_up]:
                 player.player_jump()
         screen.fill(pygame.Color((0, 0, 0)))
